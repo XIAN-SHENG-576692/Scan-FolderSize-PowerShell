@@ -35,6 +35,12 @@ If specified, the results will be sorted by folder size.
 If specified together with -Sort, results will be sorted in descending order
 (from largest to smallest).
 
+.PARAMETER Directory
+Specifies that only directories (folders) should be returned.
+
+.PARAMETER File
+Specifies that only files should be returned.
+
 .PARAMETER Shallow
 If specified, only immediate child folders are discovered.
 Subfolders will not be recursively enumerated when identifying target folders.
@@ -112,6 +118,8 @@ param (
 
     [switch]$Quiet,
     [switch]$Progress,
+    [switch]$Directory,
+    [switch]$File,
     [switch]$Shallow
 )
 
@@ -120,13 +128,10 @@ $BasePath  = (Resolve-Path $Path).Path
 $BaseDepth = ($BasePath -split '[\\/]').Count
 
 # ---------- Get folders ----------
-$FolderParams = @{
-    Path = $BasePath
-    Directory = $true
-}
-if (-not $Shallow) {
-    $FolderParams.Recurse = $true
-}
+$FolderParams = @{ LiteralPath = $BasePath }
+if ($Directory) { $FolderParams.Directory = $true }
+if ($File) { $FolderParams.File = $true }
+if (-not $Shallow) { $FolderParams.Recurse = $true }
 
 $Folders = Get-ChildItem @FolderParams | Where-Object {
     (($_.FullName -split '[\\/]').Count - $BaseDepth) -le $Floor
@@ -145,7 +150,7 @@ $Results = foreach ($Folder in $Folders) {
             -PercentComplete (($index / $total) * 100)
     }
 
-    $SizeBytes = (Get-ChildItem $Folder.FullName -Recurse -File -ErrorAction SilentlyContinue |
+    $SizeBytes = (Get-ChildItem -LiteralPath $Folder.FullName -Recurse -File -ErrorAction SilentlyContinue |
         Measure-Object Length -Sum).Sum
 
     if (-not $SizeBytes) { $SizeBytes = 0 }

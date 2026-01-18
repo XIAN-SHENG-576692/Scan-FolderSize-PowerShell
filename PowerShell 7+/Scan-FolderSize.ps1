@@ -45,6 +45,12 @@ Exports results to a formatted text file at the specified path.
 .PARAMETER Quiet
 Suppresses progress and console output. Export options are still honored.
 
+.PARAMETER Directory
+Specifies that only directories (folders) should be returned.
+
+.PARAMETER File
+Specifies that only files should be returned.
+
 .PARAMETER Shallow
 Disables recursive folder enumeration. Only direct child folders are considered.
 
@@ -120,6 +126,8 @@ param (
     [string]$OutTxt,
 
     [switch]$Quiet,
+    [switch]$Directory,
+    [switch]$File,
     [switch]$Shallow,
 
     [switch]$DynamicThreads,
@@ -142,7 +150,9 @@ if (-not $BatchSize) {
 }
 
 # ---------- Get folders ----------
-$FolderParams = @{ Path = $BasePath; Directory = $true }
+$FolderParams = @{ LiteralPath = $BasePath }
+if ($Directory) { $FolderParams.Directory = $true }
+if ($File) { $FolderParams.File = $true }
 if (-not $Shallow) { $FolderParams.Recurse = $true }
 
 $Folders = Get-ChildItem @FolderParams | Where-Object {
@@ -196,7 +206,7 @@ for ($i = 0; $i -lt $Folders.Count; $i += $BatchSize) {
         $Unit       = $using:Unit
 
         $SizeBytes = (
-            Get-ChildItem $Folder.FullName -Recurse -File `
+            Get-ChildItem -LiteralPath $Folder.FullName -Recurse -File `
                 -ErrorAction SilentlyContinue |
             Measure-Object Length -Sum
         ).Sum
