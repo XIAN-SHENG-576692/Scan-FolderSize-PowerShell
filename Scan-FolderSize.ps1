@@ -183,10 +183,10 @@ $results = $results |
     ForEach-Object {
         $size = Convert-Size -Bytes $_.SizeBytes -Unit $Unit
         [PSCustomObject]@{
-            Bytes = $size.Bytes
             Path = $_.Path
             Size = $size.Value
             Unit = $size.Unit
+            Bytes = $size.Bytes
         }
     }
 
@@ -195,9 +195,6 @@ switch ($Sort) {
     "Asc"  { $results = $results | Sort-Object Bytes }
     "Desc" { $results = $results | Sort-Object Bytes -Descending }
 }
-
-# ---------- Rearrange ----------
-$results = $results | Format-Table Path, Size, Unit -AutoSize
 
 # ---------- Export ----------
 if ($ExportCSV)  { $results | Export-Csv "$ExportPath.csv" -NoTypeInformation }
