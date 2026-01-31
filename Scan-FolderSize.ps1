@@ -187,6 +187,9 @@ $results = $results |
             Size = $size.Value
             Unit = $size.Unit
             Bytes = $size.Bytes
+            CreationTime = (Get-Item $_.Path).CreationTime.ToString("yyyy-MM-dd HH:mm:ss")
+            LastAccessTime = (Get-Item $_.Path).LastAccessTime.ToString("yyyy-MM-dd HH:mm:ss")
+            LastWriteTime = (Get-Item $_.Path).LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss")
         }
     }
 
@@ -196,10 +199,13 @@ switch ($Sort) {
     "Desc" { $results = $results | Sort-Object Bytes -Descending }
 }
 
+# ---------- Log ----------
+$resultsLog = $results | Format-Table -AutoSize | Out-String -Width 9999
+
 # ---------- Export ----------
-if ($ExportCSV)  { $results | Export-Csv "$ExportPath.csv" -NoTypeInformation }
-if ($ExportJSON) { $results | ConvertTo-Json -Depth 3 | Out-File "$ExportPath.json" }
-if ($ExportTXT)  { $results | Out-File "$ExportPath.txt" }
+if ($ExportCSV)  { $results    | Export-Csv "$ExportPath.csv" -NoTypeInformation }
+if ($ExportJSON) { $results    | ConvertTo-Json -Depth 3 | Out-File "$ExportPath.json" }
+if ($ExportTXT)  { $resultsLog | Out-File "$ExportPath.txt" }
 
 # ---------- Display ----------
-if ($OutputMode -ne "Quiet") { $results }
+if ($OutputMode -ne "Quiet") { $resultsLog }
